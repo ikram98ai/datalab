@@ -1,7 +1,8 @@
+from sklearn.ensemble import RandomForestClassifier
 import streamlit as st
 import pandas as pd
-from utils.preprocessing import proc_data, normalize, transform_stats
-
+from utils.preprocessing import proc_data, normalize, transform_stats, select_target
+from utils.pipeline import MLDataPipeline
 def main_config():
     st.set_page_config(
     page_title="Data Lab",
@@ -21,9 +22,15 @@ def get_data():
     return df
 
 
-def normalize_data(proc_df):
+def get_X_y(df):
     with st.sidebar:
         st.subheader("Prepocessing")
+        target = st.selectbox("Select Target",df.columns)
+        if not target: target = "Survived"
+        return select_target(df,target)
+    
+def normalize_data(proc_df):
+    with st.sidebar:
         norm = st.selectbox("Normalize",["standard","min_max",
                      "max_abs","robust"])
         return normalize(proc_df,norm)
@@ -35,15 +42,26 @@ def show_table(df):
     with stats:
         st.dataframe(transform_stats(df),height=210)
 
+def report_pred(X,y):
+    pipeline = MLDataPipeline(X,y)
+    model = RandomForestClassifier(random_state=42)
+    pipeline.train_model(model)
+    evaluation_report = pipeline.evaluate_model(model)
+
+    st.header("Prediction Report")
+    for k,v in evaluation_report.items():
+        st.write(k,v)
 
 def main():
     main_config()
     st.header("Data")
     df = get_data()
-    proc_df = proc_data(df)
+    X,y = get_X_y(df)
+    proc_df = proc_data(X)
     norm_df = normalize_data(proc_df)
     with st.container():
         show_table(norm_df)
+        report_pred(norm_df,y)
     
     
 

@@ -1,5 +1,7 @@
 import pandas as pd
-from sklearn.preprocessing import StandardScaler, MaxAbsScaler, MinMaxScaler,RobustScaler
+from sklearn.preprocessing import  StandardScaler, MaxAbsScaler, MinMaxScaler,RobustScaler
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, \
+                            roc_auc_score, mean_squared_error, r2_score
 
 scaler = {
 "standard" : StandardScaler(),
@@ -39,3 +41,40 @@ def transform_stats(df):
     na_percent = df.isnull().mean() * 100
     desc.loc["NaN %"] = na_percent
     return desc.rename(index={'50%': 'median'})
+
+def select_target(df,target_column):
+        X = df.drop(target_column, axis=1)
+        y = df[target_column]
+        return X,y
+
+def report(y_test,y_pred):
+    unique_values = set(y_test)
+    if len(unique_values) <= 10: 
+        problem_type = 'classification'
+    else:
+        problem_type = 'regression'
+
+    if problem_type == 'classification':
+        accuracy = accuracy_score(y_test, y_pred)
+        precision = precision_score(y_test, y_pred)
+        recall = recall_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred)
+        roc_auc = roc_auc_score(y_test, y_pred)
+
+        report = {
+            'Accuracy': accuracy,
+            'Precision': precision,
+            'Recall': recall,
+            'F1 Score': f1,
+            'ROC AUC': roc_auc
+        }
+    elif problem_type == 'regression':
+        mse = mean_squared_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        report = {
+            'Mean Squared Error': mse,
+            'R-squared': r2
+        }
+    
+    return report
