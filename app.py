@@ -21,8 +21,6 @@ def get_data():
     return df
 
 
-
-
 def normalize_data(proc_df):
     with st.sidebar:
         st.subheader("Prepocessing")
