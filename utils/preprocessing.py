@@ -1,4 +1,13 @@
 import pandas as pd
+from sklearn.preprocessing import StandardScaler, MaxAbsScaler, MinMaxScaler,RobustScaler
+
+scaler = {
+"standard" : StandardScaler(),
+"max_abs" : MaxAbsScaler(),
+"min_max" : MinMaxScaler(),
+"robust" : RobustScaler()
+}
+# "Mean Normalization"
 
 def proc_data(df):
     # Remove object columns having more than 10 unique values
@@ -18,3 +27,15 @@ def proc_data(df):
     df = pd.concat([df.drop(object_columns, axis=1), df_encoded], axis=1)
 
     return df
+
+def normalize(df,option="standard"):
+    norm_df =  scaler[option].fit_transform(df)
+    norm_df = pd.DataFrame(norm_df,columns=df.columns)
+    return norm_df
+
+def transform_stats(df):
+    desc = df.describe()
+    desc=desc.drop([desc.index[4]  , desc.index[6]])
+    na_percent = df.isnull().mean() * 100
+    desc.loc["NaN %"] = na_percent
+    return desc.rename(index={'50%': 'median'})
