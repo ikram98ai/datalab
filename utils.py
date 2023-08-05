@@ -3,7 +3,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import  StandardScaler, MaxAbsScaler, MinMaxScaler,RobustScaler
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, \
                             roc_auc_score, mean_squared_error, r2_score
-from sklearn.linear_model import LinearRegression, LogisticRegression,  SGDRegressor
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, GradientBoostingClassifier, GradientBoostingRegressor, AdaBoostClassifier, AdaBoostRegressor
 from sklearn.svm import SVC, SVR
@@ -19,24 +19,25 @@ scaler = {
 }
 
  # List of available model classes
-model_classes = {
-    'ada_boost_classifier': AdaBoostClassifier,
-    'decision_tree_classifier': DecisionTreeClassifier,
-    'gradient_boosting_classifier': GradientBoostingClassifier,
-    'kneighbors_classifier': KNeighborsClassifier,
-    'logistic_regression': LogisticRegression,
-    'mlp_classifier': MLPClassifier,
-    'randomforest_classifier': RandomForestClassifier,
-    'sv_classifier': SVC,
-    'ada_boost_regressor': AdaBoostRegressor,
-    'decision_tree_regressor': DecisionTreeRegressor,
-    'gradient_boosting_regressor': GradientBoostingRegressor,
-    'kneighbors_regressor': KNeighborsRegressor,
-    'linear_regression': LinearRegression,
-    'mlp_regressor': MLPRegressor,
-    'random_forest_regressor': RandomForestRegressor,
-    'sgd_regressor': SGDRegressor,
-    'sv_regression': SVR,
+classification_models = {
+    'ada_boost': AdaBoostClassifier,
+    'decision_tree': DecisionTreeClassifier,
+    'gradient_boosting': GradientBoostingClassifier,
+    'kneighbors': KNeighborsClassifier,
+    'linear': LogisticRegression,
+    'mlp': MLPClassifier,
+    'random_forest': RandomForestClassifier,
+    'support_vector': SVC
+}
+regression_models={
+    'ada_boost': AdaBoostRegressor,
+    'decision_tree': DecisionTreeRegressor,
+    'gradient_boosting': GradientBoostingRegressor,
+    'kneighbors': KNeighborsRegressor,
+    'linear': LinearRegression,
+    'mlp': MLPRegressor,
+    'random_forest': RandomForestRegressor,
+    'support_vector': SVR,
 }
     
 

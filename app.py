@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from utils import proc_data, normalize, transform_stats, get_X_y
-from utils import MLDataPipeline,model_classes
+from utils import MLDataPipeline,classification_models,regression_models
 
 def main_config():
     st.set_page_config(
@@ -27,11 +27,11 @@ def select_target(df):
         target = st.selectbox("Select Target",df.columns)
         return get_X_y(df,target)
     
-def normalize_data(proc_df):
+def normalize_data(df):
     with st.sidebar:
         norm = st.selectbox("Normalize",["standard","min_max",
                      "max_abs","robust"])
-        return normalize(proc_df,norm)
+        return normalize(df,norm)
 
 def show_table(df):
     st.header("Data")
@@ -51,11 +51,16 @@ def show_charts(df):
     area.area_chart(df,x=x,y=y)
     bar.bar_chart(df,x=x,y=y)
 
-def report_pred(X,y):
+# seperate model classes into classifications and regressions 
+# if task type is classification then return 
+def show_pred_report(X,y):
     st.header("Prediction Report")
     pipeline = MLDataPipeline(X,y)
-    model_name = st.selectbox("Select Model",model_classes.keys())
-    model = model_classes[model_name]()
+    model_name = st.selectbox("Select Model",classification_models.keys())
+    if pipeline.is_classification:
+        model = classification_models[model_name]()
+    else:
+        model = regression_models[model_name]()
     pipeline.train_model(model)
     evaluation_report = pipeline.evaluate_model(model)
     for k,v in evaluation_report.items():
@@ -70,7 +75,7 @@ def main():
     with st.container():
         show_table(norm_df)
         show_charts(proc_df)
-        report_pred(norm_df,y)
+        show_pred_report(norm_df,y)
     
     
 
