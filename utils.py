@@ -1,8 +1,9 @@
 import pandas as pd
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import  StandardScaler, MaxAbsScaler, MinMaxScaler,RobustScaler
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, \
                             roc_auc_score, mean_squared_error, r2_score
-from sklearn.linear_model import LinearRegression, LogisticRegression, Ridge, Lasso, ElasticNet, SGDRegressor
+from sklearn.linear_model import LinearRegression, LogisticRegression,  SGDRegressor
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, GradientBoostingClassifier, GradientBoostingRegressor, AdaBoostClassifier, AdaBoostRegressor
 from sklearn.svm import SVC, SVR
@@ -19,26 +20,23 @@ scaler = {
 
  # List of available model classes
 model_classes = {
-    'linearregression': LinearRegression,
-    'logisticregression': LogisticRegression,
-    'ridge': Ridge,
-    'lasso': Lasso,
-    'elasticnet': ElasticNet,
-    'sgdregressor': SGDRegressor,
-    'decisiontreeclassifier': DecisionTreeClassifier,
-    'decisiontreeregressor': DecisionTreeRegressor,
-    'randomforestclassifier': RandomForestClassifier,
-    'randomforestregressor': RandomForestRegressor,
-    'gradientboostingclassifier': GradientBoostingClassifier,
-    'gradientboostingregressor': GradientBoostingRegressor,
-    'adaboostclassifier': AdaBoostClassifier,
-    'adaboostregressor': AdaBoostRegressor,
-    'svc': SVC,
-    'svr': SVR,
-    'mlpclassifier': MLPClassifier,
-    'mlpregressor': MLPRegressor,
-    'kneighborsclassifier': KNeighborsClassifier,
-    'kneighborsregressor': KNeighborsRegressor,
+    'ada_boost_classifier': AdaBoostClassifier,
+    'decision_tree_classifier': DecisionTreeClassifier,
+    'gradient_boosting_classifier': GradientBoostingClassifier,
+    'kneighbors_classifier': KNeighborsClassifier,
+    'logistic_regression': LogisticRegression,
+    'mlp_classifier': MLPClassifier,
+    'randomforest_classifier': RandomForestClassifier,
+    'sv_classifier': SVC,
+    'ada_boost_regressor': AdaBoostRegressor,
+    'decision_tree_regressor': DecisionTreeRegressor,
+    'gradient_boosting_regressor': GradientBoostingRegressor,
+    'kneighbors_regressor': KNeighborsRegressor,
+    'linear_regression': LinearRegression,
+    'mlp_regressor': MLPRegressor,
+    'random_forest_regressor': RandomForestRegressor,
+    'sgd_regressor': SGDRegressor,
+    'sv_regression': SVR,
 }
     
 
@@ -78,12 +76,6 @@ def get_X_y(df,target_column):
     y = df[target_column]
     return X,y
 
-def is_classification(target):
-    unique_values = set(target)
-    if len(unique_values) <= 10: 
-        return True
-    return False
-
 def classification_report(y_test,y_pred):
     accuracy = accuracy_score(y_test, y_pred)
     precision = precision_score(y_test, y_pred)
@@ -108,17 +100,23 @@ def regression_report(y_test,y_pred):
         'R-squared': r2
     }
 
-def report(y_test,y_pred):
-    if is_classification(y_test):
-        return classification_report(y_test,y_pred)
-    return regression_report(y_test,y_pred)
-        
 
+class MLDataPipeline:
+    def __init__(self, X,y, test_size=0.3, random_state=42):
+        self.test_size = test_size
+        self.random_state = random_state
+        self.is_classification = len(set(y)) <= 10 
+        self.X_train, self.X_test, self.y_train, self.y_test = self._prepare_data(X,y)
 
+    def _prepare_data(self,X,y):
+        return train_test_split(X, y, test_size=self.test_size, \
+                                random_state=self.random_state)
 
-def get_model(model_name:str):
-    model_name = model_name.lower()
+    def train_model(self, model):
+        model.fit(self.X_train, self.y_train)
 
-    model_class = model_classes[model_name] 
-    model = model_class()
-    return model
+    def evaluate_model(self, model):
+        y_pred = model.predict(self.X_test)
+        if self.is_classification:
+            return classification_report(self.y_test, y_pred)
+        return regression_report(self.y_test, y_pred)

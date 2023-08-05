@@ -1,8 +1,8 @@
-from sklearn.ensemble import RandomForestClassifier
 import streamlit as st
 import pandas as pd
-from utils.preprocessing import get_model, proc_data, normalize, transform_stats, get_X_y,model_classes
-from utils.pipeline import MLDataPipeline
+from utils import proc_data, normalize, transform_stats, get_X_y
+from utils import MLDataPipeline,model_classes
+
 def main_config():
     st.set_page_config(
     page_title="Data Lab",
@@ -21,7 +21,6 @@ def get_data():
     df = pd.read_csv(file)
     return df
 
-
 def select_target(df):
     with st.sidebar:
         st.subheader("Prepocessing")
@@ -34,12 +33,6 @@ def normalize_data(proc_df):
                      "max_abs","robust"])
         return normalize(proc_df,norm)
 
-def select_model():
-    with st.sidebar:
-        st.subheader("Model")
-        model_name = st.selectbox("Select Model",model_classes.keys())
-        return model_name
-    
 def show_table(df):
     st.header("Data")
     data,stats = st.tabs(["Data","Statistics"])
@@ -58,10 +51,11 @@ def show_charts(df):
     area.area_chart(df,x=x,y=y)
     bar.bar_chart(df,x=x,y=y)
 
-def report_pred(X,y,model_name):
+def report_pred(X,y):
     st.header("Prediction Report")
     pipeline = MLDataPipeline(X,y)
-    model = get_model(model_name)
+    model_name = st.selectbox("Select Model",model_classes.keys())
+    model = model_classes[model_name]()
     pipeline.train_model(model)
     evaluation_report = pipeline.evaluate_model(model)
     for k,v in evaluation_report.items():
@@ -73,11 +67,10 @@ def main():
     X,y = select_target(df)
     proc_df = proc_data(X)
     norm_df = normalize_data(proc_df)
-    model_name = select_model()
     with st.container():
         show_table(norm_df)
         show_charts(proc_df)
-        report_pred(norm_df,y,model_name)
+        report_pred(norm_df,y)
     
     
 
