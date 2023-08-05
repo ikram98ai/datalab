@@ -2,6 +2,13 @@ import pandas as pd
 from sklearn.preprocessing import  StandardScaler, MaxAbsScaler, MinMaxScaler,RobustScaler
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, \
                             roc_auc_score, mean_squared_error, r2_score
+from sklearn.linear_model import LinearRegression, LogisticRegression, Ridge, Lasso, ElasticNet, SGDRegressor
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, GradientBoostingClassifier, GradientBoostingRegressor, AdaBoostClassifier, AdaBoostRegressor
+from sklearn.svm import SVC, SVR
+from sklearn.neural_network import MLPClassifier, MLPRegressor
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+
 
 scaler = {
 "standard" : StandardScaler(),
@@ -9,7 +16,31 @@ scaler = {
 "min_max" : MinMaxScaler(),
 "robust" : RobustScaler()
 }
-# "Mean Normalization"
+
+ # List of available model classes
+model_classes = {
+    'linearregression': LinearRegression,
+    'logisticregression': LogisticRegression,
+    'ridge': Ridge,
+    'lasso': Lasso,
+    'elasticnet': ElasticNet,
+    'sgdregressor': SGDRegressor,
+    'decisiontreeclassifier': DecisionTreeClassifier,
+    'decisiontreeregressor': DecisionTreeRegressor,
+    'randomforestclassifier': RandomForestClassifier,
+    'randomforestregressor': RandomForestRegressor,
+    'gradientboostingclassifier': GradientBoostingClassifier,
+    'gradientboostingregressor': GradientBoostingRegressor,
+    'adaboostclassifier': AdaBoostClassifier,
+    'adaboostregressor': AdaBoostRegressor,
+    'svc': SVC,
+    'svr': SVR,
+    'mlpclassifier': MLPClassifier,
+    'mlpregressor': MLPRegressor,
+    'kneighborsclassifier': KNeighborsClassifier,
+    'kneighborsregressor': KNeighborsRegressor,
+}
+    
 
 def proc_data(df):
     # Remove object columns having more than 10 unique values
@@ -42,39 +73,52 @@ def transform_stats(df):
     desc.loc["NaN %"] = na_percent
     return desc.rename(index={'50%': 'median'})
 
-def select_target(df,target_column):
-        X = df.drop(target_column, axis=1)
-        y = df[target_column]
-        return X,y
+def get_X_y(df,target_column):
+    X = df.drop(target_column, axis=1)
+    y = df[target_column]
+    return X,y
+
+def is_classification(target):
+    unique_values = set(target)
+    if len(unique_values) <= 10: 
+        return True
+    return False
+
+def classification_report(y_test,y_pred):
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+    roc_auc = roc_auc_score(y_test, y_pred)
+
+    return {
+        'Accuracy': accuracy,
+        'Precision': precision,
+        'Recall': recall,
+        'F1 Score': f1,
+        'ROC AUC': roc_auc
+    }
+
+def regression_report(y_test,y_pred):
+    mse = mean_squared_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+
+    return {
+        'Mean Squared Error': mse,
+        'R-squared': r2
+    }
 
 def report(y_test,y_pred):
-    unique_values = set(y_test)
-    if len(unique_values) <= 10: 
-        problem_type = 'classification'
-    else:
-        problem_type = 'regression'
+    if is_classification(y_test):
+        return classification_report(y_test,y_pred)
+    return regression_report(y_test,y_pred)
+        
 
-    if problem_type == 'classification':
-        accuracy = accuracy_score(y_test, y_pred)
-        precision = precision_score(y_test, y_pred)
-        recall = recall_score(y_test, y_pred)
-        f1 = f1_score(y_test, y_pred)
-        roc_auc = roc_auc_score(y_test, y_pred)
 
-        report = {
-            'Accuracy': accuracy,
-            'Precision': precision,
-            'Recall': recall,
-            'F1 Score': f1,
-            'ROC AUC': roc_auc
-        }
-    elif problem_type == 'regression':
-        mse = mean_squared_error(y_test, y_pred)
-        r2 = r2_score(y_test, y_pred)
 
-        report = {
-            'Mean Squared Error': mse,
-            'R-squared': r2
-        }
-    
-    return report
+def get_model(model_name:str):
+    model_name = model_name.lower()
+
+    model_class = model_classes[model_name] 
+    model = model_class()
+    return model

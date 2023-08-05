@@ -1,7 +1,7 @@
 from sklearn.ensemble import RandomForestClassifier
 import streamlit as st
 import pandas as pd
-from utils.preprocessing import proc_data, normalize, transform_stats, select_target
+from utils.preprocessing import get_model, proc_data, normalize, transform_stats, get_X_y,model_classes
 from utils.pipeline import MLDataPipeline
 def main_config():
     st.set_page_config(
@@ -22,12 +22,11 @@ def get_data():
     return df
 
 
-def get_X_y(df):
+def select_target(df):
     with st.sidebar:
         st.subheader("Prepocessing")
         target = st.selectbox("Select Target",df.columns)
-        if not target: target = "Survived"
-        return select_target(df,target)
+        return get_X_y(df,target)
     
 def normalize_data(proc_df):
     with st.sidebar:
@@ -35,33 +34,50 @@ def normalize_data(proc_df):
                      "max_abs","robust"])
         return normalize(proc_df,norm)
 
+def select_model():
+    with st.sidebar:
+        st.subheader("Model")
+        model_name = st.selectbox("Select Model",model_classes.keys())
+        return model_name
+    
 def show_table(df):
+    st.header("Data")
     data,stats = st.tabs(["Data","Statistics"])
     with data:
         st.dataframe(df,height=210)
     with stats:
         st.dataframe(transform_stats(df),height=210)
 
-def report_pred(X,y):
+def show_charts(df):
+    st.header("Visualization")
+    xcol, ycol = st.columns(2)
+    x = xcol.selectbox("Select X column",df.columns)
+    y = ycol.selectbox("Select Y column",df.columns)
+    line, area, bar = st.tabs(["Line Chart", "Area Chart","Bar Chart"])
+    line.line_chart(df,x=x,y=y)
+    area.area_chart(df,x=x,y=y)
+    bar.bar_chart(df,x=x,y=y)
+
+def report_pred(X,y,model_name):
+    st.header("Prediction Report")
     pipeline = MLDataPipeline(X,y)
-    model = RandomForestClassifier(random_state=42)
+    model = get_model(model_name)
     pipeline.train_model(model)
     evaluation_report = pipeline.evaluate_model(model)
-
-    st.header("Prediction Report")
     for k,v in evaluation_report.items():
         st.write(k,v)
 
 def main():
     main_config()
-    st.header("Data")
     df = get_data()
-    X,y = get_X_y(df)
+    X,y = select_target(df)
     proc_df = proc_data(X)
     norm_df = normalize_data(proc_df)
+    model_name = select_model()
     with st.container():
         show_table(norm_df)
-        report_pred(norm_df,y)
+        show_charts(proc_df)
+        report_pred(norm_df,y,model_name)
     
     
 
