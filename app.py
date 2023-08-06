@@ -17,7 +17,7 @@ def get_data():
     with st.sidebar:
         file = st.file_uploader("Upload your csv here")
     if not file:
-        file="./train.csv"
+        file="./titanic.csv"
     df = pd.read_csv(file)
 
     with st.sidebar:
@@ -42,8 +42,10 @@ def show_table(df):
     with stats:
         st.dataframe(transform_stats(df),height=210)
 
-def show_charts(df):
+def show_charts(X,y):
     st.header("Visualization")
+    df =X.copy()
+    df[y.name] = y
     ycol, xcol  = st.columns(2)
     y = ycol.selectbox("Select Y column",df.columns)
     x = xcol.selectbox("Select X column",df.columns)
@@ -80,7 +82,7 @@ def main():
 
     with st.container():
         show_table(df)
-        show_charts(df)
+        show_charts(df,y)
         show_pred_report(df,y)
     
     
