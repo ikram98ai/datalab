@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from utils import proc_data, normalize, transform_stats, get_X_y
+from utils import proc_data, normalize, transform_stats
 from utils import MLDataPipeline,classification_models,regression_models
 
 def main_config():
@@ -14,18 +14,19 @@ def main_config():
         st.markdown("<style>{}</style>".format(f.read()), unsafe_allow_html=True)
 
 def get_data():
-    with st. sidebar:
+    with st.sidebar:
         file = st.file_uploader("Upload your csv here")
     if not file:
         file="./train.csv"
     df = pd.read_csv(file)
-    return df
 
-def select_target(df):
     with st.sidebar:
         st.subheader("Prepocessing")
         target = st.selectbox("Select Target",df.columns)
-        return get_X_y(df,target)
+        X = df.drop(target, axis=1)
+        y = df[target]
+
+    return X,y
     
 def normalize_data(df):
     with st.sidebar:
@@ -43,16 +44,20 @@ def show_table(df):
 
 def show_charts(df):
     st.header("Visualization")
-    xcol, ycol = st.columns(2)
-    x = xcol.selectbox("Select X column",df.columns)
+    ycol, xcol  = st.columns(2)
     y = ycol.selectbox("Select Y column",df.columns)
+    x = xcol.selectbox("Select X column",df.columns)
     line, area, bar = st.tabs(["Line Chart", "Area Chart","Bar Chart"])
     line.line_chart(df,x=x,y=y)
     area.area_chart(df,x=x,y=y)
     bar.bar_chart(df,x=x,y=y)
 
-# seperate model classes into classifications and regressions 
-# if task type is classification then return 
+def drop_columns(df):
+    with st.sidebar:
+        columns = st.multiselect("Drop Columns",df.columns)
+    return df.drop(columns, axis=1)
+
+
 def show_pred_report(X,y):
     st.header("Prediction Report")
     pipeline = MLDataPipeline(X,y)
@@ -68,14 +73,15 @@ def show_pred_report(X,y):
 
 def main():
     main_config()
-    df = get_data()
-    X,y = select_target(df)
+    X,y = get_data()
     proc_df = proc_data(X)
     norm_df = normalize_data(proc_df)
+    df = drop_columns(norm_df)
+
     with st.container():
-        show_table(norm_df)
-        show_charts(proc_df)
-        show_pred_report(norm_df,y)
+        show_table(df)
+        show_charts(df)
+        show_pred_report(df,y)
     
     
 

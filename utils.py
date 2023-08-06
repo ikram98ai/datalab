@@ -72,11 +72,6 @@ def transform_stats(df):
     desc.loc["NaN %"] = na_percent
     return desc.rename(index={'50%': 'median'})
 
-def get_X_y(df,target_column):
-    X = df.drop(target_column, axis=1)
-    y = df[target_column]
-    return X,y
-
 def classification_report(y_test,y_pred):
     accuracy = accuracy_score(y_test, y_pred)
     precision = precision_score(y_test, y_pred)
