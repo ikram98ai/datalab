@@ -65,13 +65,15 @@ def normalize(df,option="standard"):
     norm_df = pd.DataFrame(norm_df,columns=df.columns)
     return norm_df
 
-def transform_stats(df):
+def numeric_stats(df):
     desc = df.describe()
-    desc=desc.drop([desc.index[4]  , desc.index[6]])
     na_percent = df.isnull().mean() * 100
     desc.loc["NaN %"] = na_percent
     return desc.rename(index={'50%': 'median'})
 
+def object_stats(df):
+    return df.describe(include='object')
+   
 def classification_report(y_test,y_pred):
     accuracy = accuracy_score(y_test, y_pred)
     precision = precision_score(y_test, y_pred)

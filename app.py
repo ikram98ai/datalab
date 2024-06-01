@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
-from utils import proc_data, normalize, transform_stats
+from utils import proc_data, normalize, numeric_stats, object_stats
 from utils import MLDataPipeline,classification_models,regression_models
+import matplotlib.pyplot as plt
 
 def main_config():
     st.set_page_config(
@@ -34,13 +35,15 @@ def normalize_data(df):
                      "max_abs","robust"])
         return normalize(df,norm)
 
-def show_table(df):
+def show_stats(df):
     st.header("Data")
-    data,stats = st.tabs(["Data","Statistics"])
+    data,num_stats, obj_stats = st.tabs(["Data","Numeric Statistics", "Object Stats"])
     with data:
         st.dataframe(df,height=210)
-    with stats:
-        st.dataframe(transform_stats(df),height=210)
+    with num_stats:
+        st.dataframe(numeric_stats(df),height=210)
+    with obj_stats:
+        st.dataframe(object_stats(df),height=210)
 
 def show_charts(X,y):
     st.header("Visualization")
@@ -49,10 +52,12 @@ def show_charts(X,y):
     ycol, xcol  = st.columns(2)
     y = ycol.selectbox("Select Y column",df.columns)
     x = xcol.selectbox("Select X column",df.columns)
-    line, area, bar = st.tabs(["Line Chart", "Area Chart","Bar Chart"])
+    line, bar, scatter,box = st.tabs(["Line Chart", "Bar Chart", "Scatter Plot","Box Plot"])
     line.line_chart(df,x=x,y=y)
-    area.area_chart(df,x=x,y=y)
     bar.bar_chart(df,x=x,y=y)
+    scatter.scatter_chart(df,x=x,y=y)
+    plt.boxplot(data=df,x=x)
+    box.pyplot(plt.show())
 
 def drop_columns(df):
     with st.sidebar:
@@ -62,6 +67,8 @@ def drop_columns(df):
 
 def show_pred_report(X,y):
     st.header("Prediction Report")
+    proc_df = proc_data(X)
+    X = normalize_data(proc_df)
     pipeline = MLDataPipeline(X,y)
     model_name = st.selectbox("Select Model",classification_models.keys())
     if pipeline.is_classification:
@@ -76,12 +83,10 @@ def show_pred_report(X,y):
 def main():
     main_config()
     X,y = get_data()
-    proc_df = proc_data(X)
-    norm_df = normalize_data(proc_df)
-    df = drop_columns(norm_df)
+    df = drop_columns(X)
 
     with st.container():
-        show_table(df)
+        show_stats(df)
         show_charts(df,y)
         show_pred_report(df,y)
     
